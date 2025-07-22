@@ -13,7 +13,7 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone <https://github.com/Halyconer/ConnectX/tree/main>
     cd ConnectX
     ```
 
