@@ -1,5 +1,7 @@
+import random
 import numpy as np
 from scipy.signal import convolve2d
+import time
 
 class Connect4:
   ROW_COUNT = 6
@@ -62,21 +64,50 @@ class Connect4:
 
   def play(self):
     while not self.game_over:
-      self.print_board()
-      col = int(input(f"Player {self.turn + 1} make your selection (0-{self.COL_COUNT - 1}): "))
+      if self.turn == 0:
+        self.print_board()
+        col = int(input(f"Make your selection (0-{self.COL_COUNT - 1}): "))
 
-      if self.is_valid(col):
-        row = self.next_open(col)
-        self.drop_piece(row, col, self.turn + 1)
-
-        if self.win(self.turn + 1):
-          self.print_board()
-          print(f"Player {self.turn + 1} wins!")
-          self.game_over = True
+        if self.is_valid(col):
+            row = self.next_open(col)
+            self.drop_piece(row, col, self.turn + 1)
+            if self.win(self.turn + 1):
+                self.print_board()
+                print(f"You win!")
+                self.game_over = True
+            else:
+                self.turn = (self.turn + 1) % 2  # Switch turns
         else:
-          self.turn = (self.turn + 1) % 2 # Switch turns
-      else:
-        print("Invalid move. Try another column.")
+            print("Invalid move. Try another column.")
+      
+      elif self.turn == 1: 
+        time.sleep(0.5)
+        col = random.randint(0, self.COL_COUNT-1)
+        print(f"AI is making a move...")
+        time.sleep(0.5)
+        print(f"AI selects column {col}")
+
+        if self.is_valid(col):
+            row = self.next_open(col)
+            self.drop_piece(row, col, self.turn + 1)
+            if self.win(self.turn + 1):
+                self.print_board()
+                print(f"AI wins!")
+                self.game_over = True
+            else:
+                self.turn = (self.turn + 1) % 2  # Switch turns
+        else:
+            valid_cols = [c for c in range(self.COL_COUNT) if self.is_valid(c)] # Get all valid columns
+            if valid_cols: # If there are valid columns, AI will pick one
+                col = random.choice(valid_cols)
+                row = self.next_open(col)
+                self.drop_piece(row, col, self.turn + 1)
+                if self.win(self.turn + 1):
+                    self.print_board()
+                    print(f"AI wins!")
+                    self.game_over = True
+                else:
+                    self.turn = (self.turn + 1) % 2  # Switch turns
 
   def main_game_loop(self):
     """Main game loop that handles multiple games"""
