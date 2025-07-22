@@ -3,6 +3,13 @@ import numpy as np
 from scipy.signal import convolve2d
 import time
 
+'''
+Connect4 initial game implementation with the goal of implementing a basic minmax-based AI.
+At the moment, the player always goes first, and the AI randomly selects a column
+
+Need to work on implementing a scoring system.
+'''
+
 class Connect4:
   ROW_COUNT = 6
   COL_COUNT = 7
@@ -26,6 +33,15 @@ class Connect4:
     for row in range(self.ROW_COUNT):
       if self.board[row][col] == 0:
         return row
+      
+  def score_position(self, piece):
+    """ 
+    Scoring function to evaluate the board position for a given piece.
+    This is a placeholder for future implementation of a scoring system.
+    """
+    score = 0
+    # Implement scoring logic here
+    return score
 
   def win(self, piece):
     """ 
