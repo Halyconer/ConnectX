@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.signal import convolve2d
 
 class Connect4:
   ROW_COUNT = 6
@@ -24,30 +25,26 @@ class Connect4:
         return row
 
   def win(self, piece):
-    # Horizontal check
-    for c in range(self.COL_COUNT - 3):
-      for r in range(self.ROW_COUNT):
-        if all(self.board[r][c+i] == piece for i in range(4)):
-          return True
+    """ 
+    Checking for a win using 2D convolution. Like a mini neural network 
+    It works by sliding each win pattern across the board with scipy's convolve2d function,
+    then checking the resulting matrix for any values >= 4, which would indicate a win.
+    """
+    # Defining the kernels for convolution to check for winning patterns
+    win_patterns = [
+        np.array([[1, 1, 1, 1]]),  # Horizontal
+        np.array([[1], [1], [1], [1]]),  # Vertical
+        np.eye(4, dtype=int),  # Positive diagonal
+        np.fliplr(np.eye(4, dtype=int)),  # Negative diagonal
+    ]
+    # Use convolution to check for winning patterns
+    player_board = (self.board == piece).astype(int)
 
-    # Vertical check
-    for c in range(self.COL_COUNT):
-      for r in range(self.ROW_COUNT - 3):
-        if all(self.board[r+i][c] == piece for i in range(4)):
-          return True
-
-    # Positive diagonal check
-    for c in range(self.COL_COUNT - 3):
-      for r in range(self.ROW_COUNT - 3):
-        if all(self.board[r+i][c+i] == piece for i in range(4)):
-          return True
-
-    # Negative diagonal check
-    for c in range(self.COL_COUNT - 3):
-      for r in range(3, self.ROW_COUNT):
-        if all(self.board[r-i][c+i] == piece for i in range(4)):
-          return True
-
+    # Create kernels for convolution
+    for kernel in win_patterns:
+      overlap = convolve2d(player_board, kernel, mode='valid')
+      if np.any(overlap >= 4):
+        return True
     return False
 
   def print_board(self):
