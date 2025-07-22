@@ -17,6 +17,7 @@ class Connect4:
     self.board[row][col] = piece
 
   def is_valid(self, col):
+    """ Check if the top row of selected column is empty """
     return self.board[self.ROW_COUNT - 1][col] == 0
 
   def next_open(self, col):
@@ -29,6 +30,10 @@ class Connect4:
     Checking for a win using 2D convolution. Like a mini neural network 
     It works by sliding each win pattern across the board with scipy's convolve2d function,
     then checking the resulting matrix for any values >= 4, which would indicate a win.
+
+    Note to self:
+    Passes work by first converting the board into a binary matrix where the player's pieces are represented as 1s,
+    so even if the piece is 2, it is marked as 1 in the convolution check. 
     """
     # Defining the kernels for convolution to check for winning patterns
     win_patterns = [
