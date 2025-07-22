@@ -8,6 +8,8 @@ Connect4 initial game implementation with the goal of implementing a basic minma
 At the moment, the player always goes first, and the AI randomly selects a column
 
 Need to work on implementing a scoring system.
+
+Another objective is to have a 6x7x2x2 matrix: layered matricies to evaluate the board state, which will allow for a more sophisticated AI.
 '''
 
 class Connect4:
