@@ -7,19 +7,29 @@ import time
 Connect4 initial game implementation with the goal of implementing a basic minmax-based AI.
 At the moment, the player always goes first, and the AI randomly selects a column
 
-Need to work on implementing a scoring system.
-
 Another objective is to have a 6x7x2x2 matrix: layered matricies to evaluate the board state, which will allow for a more sophisticated AI.
+
+To do list for now:
+1. Improve scoring logic.
+2. Fix magic number issue
+3. Move scoring logic to a separate file for better organization.
 '''
 
 class Connect4:
   ROW_COUNT = 6
   COL_COUNT = 7
+  KERNELS = [
+    np.array([[1, 1, 1, 1]]),  # Horizontal
+    np.array([[1], [1], [1], [1]]),  # Vertical
+    np.eye(4, dtype=int),  # Positive diagonal
+    np.fliplr(np.eye(4, dtype=int)),  # Negative diagonal
+  ]
 
   def __init__(self):
     self.board = self.create_board()
     self.game_over = False
     self.turn = 0
+    self.valid_cols = [c for c in range(self.COL_COUNT)] 
 
   def create_board(self):
     return np.zeros((self.ROW_COUNT, self.COL_COUNT))
@@ -28,22 +38,105 @@ class Connect4:
     self.board[row][col] = piece
 
   def is_valid(self, col):
-    """ Check if the top row of selected column is empty """
-    return self.board[self.ROW_COUNT - 1][col] == 0
+    self.valid_cols = [c for c in range(self.COL_COUNT) if self.board[self.ROW_COUNT - 1][c] == 0] # Changed this implemntation to dynamically update alongside the AI
+    return col in self.valid_cols # Will return True if the column is valid, otherwise False
 
   def next_open(self, col):
     for row in range(self.ROW_COUNT):
       if self.board[row][col] == 0:
         return row
       
-  def score_position(self, piece):
+  def score_position(self, board, piece):
     """ 
     Scoring function to evaluate the board position for a given piece.
-    This is a placeholder for future implementation of a scoring system.
+
+    Next objective:
+    Obviously improve the scoring logic.
+    But ultimately, we want to use a convolutional neural network to evaluate the board state. This is because
+    a CNN can learn to recognize patterns in the board state that lead to winning moves. Need to do research on how to implement this,
+    and if we will maintain a minmax-based AI.
     """
     score = 0
-    # Implement scoring logic here
+
+    # Scoring Horizontal
+    for r in range(self.ROW_COUNT):
+       for c in range(self.COL_COUNT - 3):
+          window = [int(board[r][c+i]) for i in range(4)]
+          score += self.window_score(window, piece)
+
+    # Scoring Vertical
+    for c in range(self.COL_COUNT):
+        for r in range(self.ROW_COUNT - 3):
+            window = [int(board[r+i][c]) for i in range(4)]
+            score += self.window_score(window, piece)
+
+    # Scoring Positive Diagonal
+    for r in range(self.ROW_COUNT - 3):
+        for c in range(self.COL_COUNT - 3):
+            window = [int(board[r+i][c+i]) for i in range(4)]
+            score += self.window_score(window, piece)
+
+    # Scoring Negative Diagonal
+    for r in range(3, self.ROW_COUNT):
+        for c in range(self.COL_COUNT - 3):
+            window = [int(board[r-i][c+i]) for i in range(4)]
+            score += self.window_score(window, piece)
+
     return score
+  
+  def window_score(self, window, piece):
+     """
+     Works by evaluating a 4-piece window in the board.
+     It will return a score based on the number of pieces in the window.
+     If a potential drop allows for an opponent win, it will return a negative score.
+     If a potential drop allows for a win, it will return a positive score.
+
+     Basically game theory.
+
+     Need to figure out a better negative scoring system.
+     """
+
+     # Just check if the piece is 1 or 2, and set the opponent accordingly. If piece is set to 2, then this is the AI, and the opponent is 1.
+     if piece == 1:
+         opponent = 2
+     else:
+         opponent = 1
+
+     # AI threat scoring
+     if window.count(piece) == 4:
+        return 100
+     elif window.count(piece) == 3 and window.count(0) == 1:
+        return 10
+     elif window.count(piece) == 2 and window.count(0) == 2:
+        return 5
+     
+     # Player threat scoring
+     if window.count(opponent) == 3 and window.count(0) == 1:
+        return -80  
+     
+     return 0
+  
+  def pick_best_move(self, piece):
+    """ 
+    This function will evaluate all possible moves and return the column with the highest score.
+    It will use the score_position function to evaluate each column.
+    """
+    best_score = -10000  # Start with very low score to handle negative scores properly
+    best_col = None 
+    for col in self.valid_cols:
+      temp_board = self.board.copy()
+      row = self.next_open(col)
+      temp_board[row][col] = piece
+      score = self.score_position(temp_board, piece)
+
+      if score > best_score:
+        best_score = score
+        best_col = col
+        
+      # Reset temp_board for next iteration 
+      temp_board = self.board.copy()
+
+    return best_col
 
   def win(self, piece):
     """ 
@@ -55,18 +148,11 @@ class Connect4:
     Passes work by first converting the board into a binary matrix where the player's pieces are represented as 1s,
     so even if the piece is 2, it is marked as 1 in the convolution check. 
     """
-    # Defining the kernels for convolution to check for winning patterns
-    win_patterns = [
-        np.array([[1, 1, 1, 1]]),  # Horizontal
-        np.array([[1], [1], [1], [1]]),  # Vertical
-        np.eye(4, dtype=int),  # Positive diagonal
-        np.fliplr(np.eye(4, dtype=int)),  # Negative diagonal
-    ]
     # Use convolution to check for winning patterns
     player_board = (self.board == piece).astype(int)
 
     # Create kernels for convolution
-    for kernel in win_patterns:
+    for kernel in self.KERNELS:
       overlap = convolve2d(player_board, kernel, mode='valid')
       if np.any(overlap >= 4):
         return True
@@ -100,7 +186,7 @@ class Connect4:
       
       elif self.turn == 1: 
         time.sleep(0.5)
-        col = random.randint(0, self.COL_COUNT-1)
+        col = self.pick_best_move(self.turn + 1)  
         print(f"AI is making a move...")
         time.sleep(0.5)
         print(f"AI selects column {col}")
@@ -145,7 +231,6 @@ A main game loop is implemented to allow players to play more than one game with
 a recursive function call that could lead to a stack overflow.
 '''
 
-# Run the game
 if __name__ == "__main__":
     game = Connect4() # Initialize the game
     game.main_game_loop() # Start the main game loop
