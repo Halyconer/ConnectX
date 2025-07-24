@@ -60,8 +60,8 @@ class Connect4:
 
     # Scoring Center Column because it is the most important column
     center_col = [int(i) for i in board[:, self.COL_COUNT // 2]] # a single column from the board at the moment
-    center_count = center_col.count(piece)
-    score += 5
+    center_count = center_col.count(piece) # Count the number of (AI) pieces in the center column
+    score += 5 * center_count # So the more pieces in the center column, the higher the score
 
     # Scoring Horizontal
     for r in range(self.ROW_COUNT):
@@ -244,6 +244,7 @@ class Connect4:
 
 
 '''
+
 Note to self:
 A main game loop is implemented to allow players to play more than one game without restarting the program and without
 a recursive function call that could lead to a stack overflow.
