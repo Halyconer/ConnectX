@@ -58,6 +58,11 @@ class Connect4:
     """
     score = 0
 
+    # Scoring Center Column because it is the most important column
+    center_col = [int(i) for i in board[:, self.COL_COUNT // 2]] # a single column from the board at the moment
+    center_count = center_col.count(piece)
+    score += 5
+
     # Scoring Horizontal
     for r in range(self.ROW_COUNT):
        for c in range(self.COL_COUNT - 3):
@@ -91,6 +96,9 @@ class Connect4:
      If a potential drop allows for an opponent win, it will return a negative score.
      If a potential drop allows for a win, it will return a positive score.
 
+     Remember that the scoring logic is not here, but in the score_position function.
+     This is just a helper function to evaluate a 4-piece window.
+
      Basically game theory.
 
      Need to figure out a better negative scoring system.
@@ -120,9 +128,19 @@ class Connect4:
     """ 
     This function will evaluate all possible moves and return the column with the highest score.
     It will use the score_position function to evaluate each column.
+
+    Looking at all three relevant functions, the scoring logic is as follows:
+    1. A piece is dropped into a hypothetical board (in the first column it finds an open row).
+    2. The score_position function is called to evaluate the board state after the hypothetical drop.
+        - The score_position function calls the window_score function to evaluate a 4-piece window.
+    3. A score is assigned based on the evaluation.
+    4. The loop continues until all columns have been evaluated. If a column is assigned a higher score than the previous best, it becomes the new best column.
+    5. The function returns the column with the highest score.
+    6. If no valid columns are found, it returns None.
     """
     best_score = -10000  # Start with very low score to handle negative scores properly
     best_col = None 
+
     for col in self.valid_cols:
       temp_board = self.board.copy()
       row = self.next_open(col)
