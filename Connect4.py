@@ -24,13 +24,12 @@ class Connect4:
   ROW_COUNT = 6
   COL_COUNT = 7
 
-  # For now Kernels should be consistent
   KERNELS = [
-    np.array([[1, 1, 1, 1]]),  # Horizontal
-    np.array([[1], [1], [1], [1]]),  # Vertical
-    np.eye(4, dtype=int),  # Positive diagonal
-    np.fliplr(np.eye(4, dtype=int)),  # Negative diagonal
-  ]
+        np.array([[1, 1, 1, 1]]),  # Horizontal
+        np.array([[1], [1], [1], [1]]),  # Vertical
+        np.eye(4, dtype=int),  # Positive diagonal
+        np.fliplr(np.eye(4, dtype=int)),  # Negative diagonal
+    ]
 
   def __init__(self):
     self.board = self.create_board()
@@ -52,84 +51,6 @@ class Connect4:
     for row in range(self.ROW_COUNT):
       if self.board[row][col] == 0:
         return row
-      
-  def score_position(self, piece):
-    """ 
-    Scoring function to evaluate the board position for a given piece.
-
-    Next objective:
-    Obviously improve the scoring logic.
-    But ultimately, we want to use a convolutional neural network to evaluate the board state. This is because
-    a CNN can learn to recognize patterns in the board state that lead to winning moves. Need to do research on how to implement this,
-    and if we will maintain a minmax-based AI.
-    """
-    score = 0
-
-    # Scoring Center Column because it is the most important column
-    center_col = [int(i) for i in board[:, self.COL_COUNT // 2]] # a single column from the board at the moment
-    center_count = center_col.count(piece) # Count the number of (AI) pieces in the center column
-    score += 5 * center_count # So the more pieces in the center column, the higher the score
-
-    # Scoring Horizontal
-    for r in range(self.ROW_COUNT):
-       for c in range(self.COL_COUNT - 3):
-          window = [int(self.board[r][c+i]) for i in range(4)]
-          score += self.window_score(window, piece)
-
-    # Scoring Vertical
-    for c in range(self.COL_COUNT):
-        for r in range(self.ROW_COUNT - 3):
-            window = [int(self.board[r+i][c]) for i in range(4)]
-            score += self.window_score(window, piece)
-
-    # Scoring Positive Diagonal
-    for r in range(self.ROW_COUNT - 3):
-        for c in range(self.COL_COUNT - 3):
-            window = [int(self.board[r+i][c+i]) for i in range(4)]
-            score += self.window_score(window, piece)
-
-    # Scoring Negative Diagonal
-    for r in range(3, self.ROW_COUNT):
-        for c in range(self.COL_COUNT - 3):
-            window = [int(self.board[r-i][c+i]) for i in range(4)]
-            score += self.window_score(window, piece)
-
-    return score
-  
-  def window_score(self, window, piece):
-     """
-     Works by evaluating a 4-piece window in the board.
-     It will return a score based on the number of pieces in the window.
-     If a potential drop allows for an opponent win, it will return a negative score.
-     If a potential drop allows for a win, it will return a positive score.
-
-     Remember that the scoring logic is not here, but in the score_position function.
-     This is just a helper function to evaluate a 4-piece window.
-
-     Basically game theory.
-
-     Need to figure out a better negative scoring system.
-     """
-
-     # Just check if the piece is 1 or 2, and set the opponent accordingly. If piece is set to 2, then this is the AI, and the opponent is 1.
-     if piece == 1:
-         opponent = 2
-     else:
-         opponent = 1
-
-     # AI threat scoring
-     if window.count(piece) == 4:
-        return 100
-     elif window.count(piece) == 3 and window.count(0) == 1:
-        return 10
-     elif window.count(piece) == 2 and window.count(0) == 2:
-        return 5
-     
-     # Player threat scoring
-     if window.count(opponent) == 3 and window.count(0) == 1:
-        return -80  
-     
-     return 0
 
   def win(self, piece):
     """ 
