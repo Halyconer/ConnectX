@@ -2,22 +2,29 @@ import random
 import numpy as np
 from scipy.signal import convolve2d
 import time
+from scoring import minimax
 
 '''
 Connect4 initial game implementation with the goal of implementing a basic minmax-based AI.
-At the moment, the player always goes first, and the AI randomly selects a column
+At the moment, the player always goes first, and the AI randomly selects a column.
 
 Another objective is to have a 6x7x2x2 matrix: layered matricies to evaluate the board state, which will allow for a more sophisticated AI.
 
-To do list for now:
-1. Improve scoring logic.
+To do list:
+1. Move all scoring logic to scoring.py
 2. Fix magic number issue
-3. Move scoring logic to a separate file for better organization.
+
+Notes:
+- drop_piece method is kind of redundant, although it might be more efficient because it allows for a single method to handle the piece dropping logic. Need to 
+make sure that it is implemented because some methods just use array assignment.
+- Currently board references are very confusing as to when the numpy array or the Connect4 object is being referenced.
 '''
 
 class Connect4:
   ROW_COUNT = 6
   COL_COUNT = 7
+
+  # For now Kernels should be consistent
   KERNELS = [
     np.array([[1, 1, 1, 1]]),  # Horizontal
     np.array([[1], [1], [1], [1]]),  # Vertical
@@ -46,7 +53,7 @@ class Connect4:
       if self.board[row][col] == 0:
         return row
       
-  def score_position(self, board, piece):
+  def score_position(self, piece):
     """ 
     Scoring function to evaluate the board position for a given piece.
 
@@ -66,25 +73,25 @@ class Connect4:
     # Scoring Horizontal
     for r in range(self.ROW_COUNT):
        for c in range(self.COL_COUNT - 3):
-          window = [int(board[r][c+i]) for i in range(4)]
+          window = [int(self.board[r][c+i]) for i in range(4)]
           score += self.window_score(window, piece)
 
     # Scoring Vertical
     for c in range(self.COL_COUNT):
         for r in range(self.ROW_COUNT - 3):
-            window = [int(board[r+i][c]) for i in range(4)]
+            window = [int(self.board[r+i][c]) for i in range(4)]
             score += self.window_score(window, piece)
 
     # Scoring Positive Diagonal
     for r in range(self.ROW_COUNT - 3):
         for c in range(self.COL_COUNT - 3):
-            window = [int(board[r+i][c+i]) for i in range(4)]
+            window = [int(self.board[r+i][c+i]) for i in range(4)]
             score += self.window_score(window, piece)
 
     # Scoring Negative Diagonal
     for r in range(3, self.ROW_COUNT):
         for c in range(self.COL_COUNT - 3):
-            window = [int(board[r-i][c+i]) for i in range(4)]
+            window = [int(self.board[r-i][c+i]) for i in range(4)]
             score += self.window_score(window, piece)
 
     return score
@@ -123,38 +130,6 @@ class Connect4:
         return -80  
      
      return 0
-  
-  def pick_best_move(self, piece):
-    """ 
-    This function will evaluate all possible moves and return the column with the highest score.
-    It will use the score_position function to evaluate each column.
-
-    Looking at all three relevant functions, the scoring logic is as follows:
-    1. A piece is dropped into a hypothetical board (in the first column it finds an open row).
-    2. The score_position function is called to evaluate the board state after the hypothetical drop.
-        - The score_position function calls the window_score function to evaluate a 4-piece window.
-    3. A score is assigned based on the evaluation.
-    4. The loop continues until all columns have been evaluated. If a column is assigned a higher score than the previous best, it becomes the new best column.
-    5. The function returns the column with the highest score.
-    6. If no valid columns are found, it returns None.
-    """
-    best_score = -10000  # Start with very low score to handle negative scores properly
-    best_col = None 
-
-    for col in self.valid_cols:
-      temp_board = self.board.copy()
-      row = self.next_open(col)
-      temp_board[row][col] = piece
-      score = self.score_position(temp_board, piece)
-
-      if score > best_score:
-        best_score = score
-        best_col = col
-        
-      # Reset temp_board for next iteration 
-      temp_board = self.board.copy()
-
-    return best_col
 
   def win(self, piece):
     """ 
@@ -198,13 +173,14 @@ class Connect4:
                 print(f"You win!")
                 self.game_over = True
             else:
-                self.turn = (self.turn + 1) % 2  # Switch turns
+                self.turn = (self.turn + 1) % 2  
         else:
             print("Invalid move. Try another column.")
       
+      # AI decision making
       elif self.turn == 1: 
-        time.sleep(0.5)
-        col = self.pick_best_move(self.turn + 1)  
+        time.sleep(0.1)
+        col = minimax(self.board, 2, True)[0]  # AI selects a column using minimax algorithm
         print(f"AI is making a move...")
         time.sleep(0.5)
         print(f"AI selects column {col}")
@@ -217,8 +193,9 @@ class Connect4:
                 print(f"AI wins!")
                 self.game_over = True
             else:
-                self.turn = (self.turn + 1) % 2  # Switch turns
-        else:
+                self.turn = (self.turn + 1) % 2 
+
+        else: # If the AI selects an invalid column, it will randomly select a valid column
             valid_cols = [c for c in range(self.COL_COUNT) if self.is_valid(c)] # Get all valid columns
             if valid_cols: # If there are valid columns, AI will pick one
                 col = random.choice(valid_cols)
@@ -229,7 +206,7 @@ class Connect4:
                     print(f"AI wins!")
                     self.game_over = True
                 else:
-                    self.turn = (self.turn + 1) % 2  # Switch turns
+                    self.turn = (self.turn + 1) % 2 
 
   def main_game_loop(self):
     """Main game loop that handles multiple games"""
@@ -242,9 +219,7 @@ class Connect4:
       else:
         self.reset_game()
 
-
 '''
-
 Note to self:
 A main game loop is implemented to allow players to play more than one game without restarting the program and without
 a recursive function call that could lead to a stack overflow.
