@@ -2,7 +2,7 @@ import random
 import copy
 import numpy as np  
 
-def minimax(board: np.ndarray, depth: int, maximizing_player: bool) -> tuple:
+def minimax(board: np.ndarray, depth: int, maximizing_player: bool, alpha: float = float('-inf'), beta: float = float('inf')) -> tuple:
     '''
     Remember how minimax works: The algorithm recursively explores all possible moves up to a certain depth. It picks a maximizing move, 
     then it assumes the opponent will pick the minimizing move, and so on. The depth is a limit to how many moves ahead the algorithm will look.
@@ -32,11 +32,15 @@ def minimax(board: np.ndarray, depth: int, maximizing_player: bool) -> tuple:
             board_copy = board.copy()
             board_copy[row][col] = 2  # AI's piece
             
-            new_eval = minimax(board_copy, depth - 1, False)[1]
+            new_eval = minimax(board_copy, depth - 1, False, alpha, beta)[1]
 
             if new_eval > max_eval:
                 max_eval = new_eval
                 column = col
+
+            alpha = max(alpha, new_eval)
+            if beta <= alpha:
+                break
 
         return column, max_eval # final return statement
 
@@ -49,11 +53,15 @@ def minimax(board: np.ndarray, depth: int, maximizing_player: bool) -> tuple:
             board_copy = board.copy()
             board_copy[row][col] = 1  # Player's piece
 
-            new_eval = minimax(board_copy, depth - 1, True)[1]
+            new_eval = minimax(board_copy, depth - 1, True, alpha, beta)[1]
 
             if new_eval < min_eval:
                 min_eval = new_eval
                 column = col
+
+            beta = min(beta, new_eval)
+            if beta <= alpha:
+                break
 
         return column, min_eval # final return statement
 
@@ -78,7 +86,7 @@ def check_win(board, piece):
     # Convert board to binary for the piece
     player_board = (board == piece).astype(int)
     
-    # Define win patterns (kernels)
+    # Define Kernels the same way as in Connect4.py
     kernels = [
         np.array([[1, 1, 1, 1]]),  # Horizontal
         np.array([[1], [1], [1], [1]]),  # Vertical

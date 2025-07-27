@@ -100,10 +100,8 @@ class Connect4:
       
       # AI decision making
       elif self.turn == 1: 
-        time.sleep(0.1)
-        col = minimax(self.board, 2, True)[0]  # AI selects a column using minimax algorithm
+        col = minimax(self.board, 4, True)[0]  # AI selects a column using minimax algorithm
         print(f"AI is making a move...")
-        time.sleep(0.5)
         print(f"AI selects column {col}")
 
         if self.is_valid(col):
