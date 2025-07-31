@@ -38,7 +38,12 @@ def minimax(board: np.ndarray, depth: int, maximizing_player: bool, alpha: float
                 max_eval = new_eval
                 column = col
 
+            # Alpha-Beta Pruning
+            # At first run, alpha is -inf and beta is inf. So it will ALWAYS update alpha
             alpha = max(alpha, new_eval)
+
+            # If the opponent can limit the AI's score BELOW the AI's maximizing move, prune the search tree
+            # by breaking out of the loop. We try the next column.
             if beta <= alpha:
                 break
 
