@@ -44,6 +44,11 @@ def minimax(board: np.ndarray, depth: int, maximizing_player: bool, alpha: float
 
             # If the opponent can limit the AI's score BELOW the AI's maximizing move, prune the search tree
             # by breaking out of the loop. We try the next column.
+
+            # beta here is the minimum score the minimizing player is willing to accept.
+            # If the AI's maximizing move is greater than the minimizing player's beta, we can prune
+            # the search tree because the minimizing player will not choose this move.
+
             if beta <= alpha:
                 break
 
