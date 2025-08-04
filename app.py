@@ -18,16 +18,15 @@ def new_game():
         'board': game.board.tolist(),
         'message': 'Game has been reset.',
         'turn': game.turn,
-        'valid_cols': game.valid_cols  # Changed from valid_columns
+        'valid_cols': game.valid_cols  
     })
-
 
 @app.route('/game_state', methods=['GET'])
 def game_state():
     return jsonify({
         'board': game.board.tolist(),
         'turn': game.turn,
-        'valid_cols': game.valid_cols,  # Changed from valid_columns
+        'valid_cols': game.valid_cols, 
         'game_over': game.game_over
     })
 
@@ -49,7 +48,7 @@ def make_move():
             'board': game.board.tolist(),
             'message': f'Player {game.turn + 1} wins!',
             'turn': game.turn,
-            'valid_cols': game.valid_cols  # Keep as valid_cols
+            'valid_cols': game.valid_cols  
         })
     
     game.turn = (game.turn + 1) % 2  
@@ -68,7 +67,7 @@ def make_move():
                     'game_over': True,
                     'winner': 'ai',
                     'turn': game.turn,
-                    'valid_cols': game.valid_cols,  # Changed from valid_columns
+                    'valid_cols': game.valid_cols, 
                     'ai_move': ai_col
                 })
             
@@ -78,7 +77,7 @@ def make_move():
         'board': game.board.tolist(),
         'game_over': game.game_over,
         'turn': game.turn,
-        'valid_cols': game.valid_cols,  # Changed from valid_columns
+        'valid_cols': game.valid_cols, 
         'ai_move': ai_col if 'ai_col' in locals() else None
     })
 
