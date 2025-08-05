@@ -50,7 +50,7 @@
             background-color: #ffdd44;
         }
         
-        .cell:hover {
+        .cell:hover:not(.player1):not(.player2) {
             background-color: #e0e0e0;
         }
         
@@ -180,7 +180,6 @@
             }
         }
 
-        // Combined function
         async function startGame(isReset = false) {
             if (!isReset && isProcessing) return;  // Only block if not a reset
             
@@ -197,7 +196,6 @@
             }
         }
 
-        // Simplified functions
         async function newGame() {
             await startGame(false);
         }
@@ -208,13 +206,9 @@
 
         // Make a move
         async function makeMove(col) {
-            console.log('gameState:', gameState); // DEBUG - see what properties exist
-            
             if (isProcessing || !gameState || gameState.game_over) return;
             
-            // Check both possible property names
-            const validCols = gameState.valid_cols || gameState.valid_columns || [];
-            console.log('Valid columns:', validCols); // DEBUG
+            const validCols = gameState.valid_cols || [];
             
             if (!validCols.includes(col)) {  
                 updateStatus('Invalid move! Column is full.');
@@ -227,17 +221,35 @@
             const response = await apiRequest('/move', 'POST', { column: col }); 
             
             if (response) {
-                gameState = response;
-                updateBoard();
-                
                 if (response.game_over) {
+                    // Game over - show final state
+                    gameState = { ...response, board: response.board_after_ai || response.board };
+                    updateBoard();
+                    
                     if (response.winner === 'player') {
                         updateStatus('🎉 You won! Great job!');
                     } else if (response.winner === 'ai') {
                         updateStatus('🤖 AI wins! Try again?');
+                    } else {
+                        updateStatus('Game over!');
                     }
                 } else {
-                    updateStatus('Your turn! Click a column to drop your piece.');
+                    // Show player's move first
+                    gameState = { ...response, board: response.board_before_ai };
+                    updateBoard();
+                    updateStatus('Your move made! AI is thinking...');
+                    
+                    // Add delay before showing AI move
+                    setTimeout(() => {
+                        gameState = { ...response, board: response.board_after_ai };
+                        updateBoard();
+                        
+                        if (response.ai_move !== null && response.ai_move !== undefined) {
+                            updateStatus(`AI dropped in column ${response.ai_move + 1}. Your turn!`);
+                        } else {
+                            updateStatus('Your turn! Click a column to drop your piece.');
+                        }
+                    }, 1000); // 1 second delay
                 }
             }
             
