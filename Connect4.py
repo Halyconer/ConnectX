@@ -79,6 +79,7 @@ class Connect4:
     self.board = self.create_board()
     self.game_over = False
     self.turn = 0
+    self.valid_cols = [c for c in range(self.COL_COUNT)]  
 
   def play(self):
     while not self.game_over:

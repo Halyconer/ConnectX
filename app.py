@@ -15,6 +15,8 @@ def index():
 def new_game():
     global game
     game.reset_game()
+    print(f"New game - valid_cols: {game.valid_cols}")  # DEBUG
+    print(f"Board shape: {game.board.shape}")  # DEBUG
     return jsonify({
         'board': game.board.tolist(),
         'message': 'Game has been reset.',
@@ -34,11 +36,14 @@ def game_state():
 @app.route('/move', methods=['POST'])
 def make_move():
     global game
-
     data = request.json
     col = data.get('column')
-
+    
+    print(f"Move request - column: {col}, type: {type(col)}")  # DEBUG
+    print(f"Valid columns: {game.valid_cols}")  # DEBUG
+    
     if not game.is_valid(col):
+        print(f"Invalid move detected for column {col}")  # DEBUG
         return jsonify({'error': 'Invalid move. Try another column.'}), 400
     
     # Make player move

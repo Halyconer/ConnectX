@@ -90,6 +90,10 @@
             color: #666;
             font-style: italic;
         }
+        
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -100,7 +104,6 @@
         
         <div class="controls">
             <button id="newGameBtn" onclick="newGame()">New Game</button>
-            <button id="resetBtn" onclick="resetGame()" disabled>Reset</button>
         </div>
         
         <div class="board" id="board"></div>
@@ -131,7 +134,8 @@
 
         // Update board display based on game state
         function updateBoard() {
-            if (!gameState) return;
+            // this function bases its updates on the gameState object which is updated by the API
+            if (!gameState) return; // No game state available
             
             const cells = document.querySelectorAll('.cell');
             cells.forEach(cell => { // Loops through each cell
@@ -180,37 +184,45 @@
             }
         }
 
-        async function startGame(isReset = false) {
-            if (!isReset && isProcessing) return;  // Only block if not a reset
-            
-            isProcessing = false;  // Always reset processing state
-            updateStatus(isReset ? 'Resetting game...' : 'Starting new game...');
+        async function startGame() {
+            isProcessing = true;  // Prevent clicks during setup
+            updateStatus('Starting new game...');
             
             const response = await apiRequest('/play', 'POST');
+            console.log('New game response:', response); // DEBUG
             
             if (response) {
                 gameState = response;
-                updateBoard();
+                createBoard();  // Recreate the board with fresh event handlers
+                updateBoard();  // Update the visual state
                 updateStatus('Your turn! Click a column to drop your piece.');
-                document.getElementById('resetBtn').disabled = false;
+            } else {
+                updateStatus('Failed to start new game. Check server connection.');
             }
+            
+            isProcessing = false;  // Allow clicks after setup is complete
         }
 
         async function newGame() {
-            await startGame(false);
+            await startGame();
         }
 
-        async function resetGame() {
-            await startGame(true);
-        }
-
-        // Make a move
+        // Add debugging to makeMove
         async function makeMove(col) {
-            if (isProcessing || !gameState || gameState.game_over) return;
+            console.log('makeMove called with column:', col); // DEBUG
+            console.log('isProcessing:', isProcessing, 'gameState:', gameState); // DEBUG
+            
+            if (isProcessing || !gameState || gameState.game_over) {
+                console.log('Move blocked - isProcessing:', isProcessing, 'gameState exists:', !!gameState, 'game_over:', gameState?.game_over);
+                return;
+            }
             
             const validCols = gameState.valid_cols || [];
+            console.log('Valid columns:', validCols); // DEBUG
+            console.log('Clicked column:', col, 'Type:', typeof col); // DEBUG
             
             if (!validCols.includes(col)) {  
+                console.log('Invalid move detected!'); // DEBUG
                 updateStatus('Invalid move! Column is full.');
                 return;
             }
@@ -255,11 +267,6 @@
             
             isProcessing = false;
         }
-
-        // Initialize the game board display for when the page loads
-        window.onload = () => {
-            createBoard();
-        };
     </script>
 </body>
 </html>
