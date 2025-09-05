@@ -1,9 +1,11 @@
 from copy import copy
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 import json
 from Connect4 import Connect4
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 game = Connect4()
 
@@ -55,9 +57,21 @@ def make_move():
         return jsonify({
             'game_over': True,
             'board': game.board.tolist(),
+            'winner': 'player',
             'message': f'Player {game.turn + 1} wins!',
             'turn': game.turn,
             'valid_cols': game.valid_cols  
+        })
+    
+    # Check for tie (board full)
+    if not game.valid_cols:
+        return jsonify({
+            'game_over': True,
+            'board': game.board.tolist(),
+            'winner': 'tie',
+            'message': 'It\'s a tie!',
+            'turn': game.turn,
+            'valid_cols': game.valid_cols
         })
     
     game.turn = (game.turn + 1) % 2  
@@ -85,6 +99,19 @@ def make_move():
                     'ai_move': ai_col
                 })
             
+            # Check for tie after AI move
+            if not game.valid_cols:
+                return jsonify({
+                    'board_before_ai': board_after_player,
+                    'board_after_ai': game.board.tolist(),
+                    'game_over': True,
+                    'winner': 'tie',
+                    'message': 'It\'s a tie!',
+                    'turn': game.turn,
+                    'valid_cols': game.valid_cols,
+                    'ai_move': ai_col
+                })
+            
             game.turn = (game.turn + 1) % 2
     
     return jsonify({
@@ -97,4 +124,4 @@ def make_move():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5002)
