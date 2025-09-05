@@ -11,6 +11,7 @@ game = Connect4()
 def index():
     return send_from_directory('.', 'index.html')
 
+# For the new game button
 @app.route('/play', methods=['POST'])
 def new_game():
     global game

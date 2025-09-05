@@ -11,12 +11,9 @@ At the moment, the player always goes first, and the AI randomly selects a colum
 Another objective is to have a 6x7x2x2 matrix: layered matricies to evaluate the board state, which will allow for a more sophisticated AI.
 
 To do list:
-1. Move all scoring logic to scoring.py
-2. Fix magic number issue
+1. Fix magic number issue
 
 Notes:
-- drop_piece method is kind of redundant, although it might be more efficient because it allows for a single method to handle the piece dropping logic. Need to 
-make sure that it is implemented because some methods just use array assignment.
 - Currently board references are very confusing as to when the numpy array or the Connect4 object is being referenced.
 '''
 
