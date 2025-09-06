@@ -5,7 +5,8 @@ import json
 from Connect4 import Connect4
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# CORS is handled by nginx in production, only enable for local development
+# CORS(app)  # Commented out - nginx handles CORS
 
 game = Connect4()
 
