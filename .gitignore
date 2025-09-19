@@ -140,3 +140,8 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Verification artifacts
+*.bak
+verification.png
+flask_output.log
