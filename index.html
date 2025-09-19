@@ -66,15 +66,11 @@
         }
         
         .cell.player1 {
-            background-color: var(--player1-color); /* fallback */
-            background: radial-gradient(circle at 20px 20px, #ff7777, #ff4444);
-            box-shadow: inset 0 -4px 4px rgba(0,0,0,0.2);
+            background-color: var(--player1-color);
         }
         
         .cell.player2 {
-            background-color: var(--player2-color); /* fallback */
-            background: radial-gradient(circle at 20px 20px, #ffff77, #ffdd44);
-            box-shadow: inset 0 -4px 4px rgba(0,0,0,0.2);
+            background-color: var(--player2-color);
         }
         
         .cell:hover:not(.player1):not(.player2) {
@@ -86,16 +82,15 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            transition: top 0.5s cubic-bezier(0.5, -0.5, 0.5, 1.5);
-            box-shadow: inset 0 -4px 4px rgba(0,0,0,0.2), 0 4px 6px rgba(0,0,0,0.2);
+            transition: top 0.5s cubic-bezier(0.5, -0.5, 0.5, 1.5); /* Ease-in-out with a bounce */
         }
 
         .coin.player1 {
-            background: radial-gradient(circle at 20px 20px, #ff7777, #ff4444);
+            background-color: var(--player1-color);
         }
 
         .coin.player2 {
-            background: radial-gradient(circle at 20px 20px, #ffff77, #ffdd44);
+            background-color: var(--player2-color);
         }
 
         .controls {
@@ -237,10 +232,10 @@
                 const coin = document.createElement('div');
                 coin.className = `coin ${player}`;
 
-                // Calculate starting and ending positions with the corrected offset
-                const startLeft = (60 + 5) * col + 2; // Corrected offset
+                // Calculate starting and ending positions
+                const startLeft = (60 + 5) * col + 10; // col * (cell_width + gap) + padding
                 const startTop = -60; // Start above the board
-                const endTop = (60 + 5) * (5 - row) + 2; // Corrected offset
+                const endTop = (60 + 5) * (5 - row) + 10; // row * (cell_height + gap) + padding
 
                 coin.style.left = `${startLeft}px`;
                 coin.style.top = `${startTop}px`;
@@ -314,7 +309,7 @@
 
                         if (response.game_over && response.winner === 'ai') {
                             updateStatus('🤖 AI wins! Try again?');
-                        } else {
+.                        } else {
                             updateStatus(`AI dropped in column ${aiCol + 1}. Your turn!`);
                         }
                         isProcessing = false;
