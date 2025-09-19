@@ -140,3 +140,12 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Jules build and config files
+.jules/
+jules/
+*.jules.*
+*.jules
+jules.config.*
+jules.config
+jules-scratch/
