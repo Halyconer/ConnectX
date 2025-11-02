@@ -2,11 +2,30 @@ from copy import copy
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
+import os
+from dotenv import load_dotenv
 from Connect4 import Connect4
 
+load_dotenv()
+
+# Configuration from environment variables
+FLASK_ENV = os.getenv('FLASK_ENV', 'production')
+DEVELOPMENT_MODE = os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true'
+
+# Print configuration on startup
+print(f"Flask Environment: {FLASK_ENV}")
+print(f"Development Mode: {DEVELOPMENT_MODE}")
+
 app = Flask(__name__)
-# CORS is handled by nginx in production, only enable for local development
-# CORS(app)  # Commented out - nginx handles CORS
+
+# Configure CORS based on environment
+if DEVELOPMENT_MODE:
+    # In development mode, allow CORS from any origin
+    CORS(app)
+    print("CORS enabled for all origins (Development Mode)")
+else:
+    # In production mode, don't configure CORS here - nginx handles it
+    print("CORS disabled - nginx handles CORS in production")
 
 game = Connect4()
 
@@ -125,4 +144,5 @@ def make_move():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    debug_mode = DEVELOPMENT_MODE or FLASK_ENV == 'development'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5002)
